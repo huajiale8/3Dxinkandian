@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import * as THREE from 'three';
-import {OrbitControls} from "three/examples/jsm/controls/OrbitControls";
 import {Octree} from "three/examples/jsm/math/Octree";
 import {Capsule} from "three/examples/jsm/math/Capsule";
 import {GLTFLoader} from "three/examples/jsm/loaders/GLTFLoader";
@@ -17,10 +16,8 @@ const ambientLight = new THREE.AmbientLight(0xffffff, 1); // 参数1：光的颜
 scene.add(ambientLight);
 
 const fillLight1 = new THREE.HemisphereLight(0xffffff, 1);
-fillLight1.position.set(10, 2, 10);
+fillLight1.position.set(10, 10, 10);
 scene.add(fillLight1);
-
-
 onMounted(() => {
     const container = document.getElementById('container');
     const renderer = new THREE.WebGLRenderer({
@@ -32,6 +29,7 @@ onMounted(() => {
     renderer.shadowMap.type = THREE.VSMShadowMap;
     renderer.outputEncoding = THREE.sRGBEncoding;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     container.appendChild(renderer.domElement);
     const stats = new Stats();
     container.appendChild(stats.domElement);
@@ -42,10 +40,11 @@ onMounted(() => {
         wireframe: true,
         transparent: true, // 启用透明度
         alphaTest: 0.5, // 控制透明度的阈值
-        visible:false
+        visible:false,
     });
     const capsule = new THREE.Mesh(geometry, material);
     scene.add(capsule);
+
     const GRAVITY = 30;
     const STEPS_PER_FRAME = 5;
     let peopleObj;
@@ -64,13 +63,11 @@ onMounted(() => {
         crossPlay(actionWalk, actionIdle);
     });
     window.addEventListener('resize', onWindowResize);
-
     function onWindowResize() {
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
         renderer.setSize(window.innerWidth, window.innerHeight);
     }
-
     // 玩家碰撞
     function playerCollisions() {
         const result = worldOctree.capsuleIntersect(playerCollider);
@@ -106,7 +103,6 @@ onMounted(() => {
         animate();
     });
 
-
     let playerMixer;
     let actionIdle;
     let actionWalk;
@@ -115,8 +111,6 @@ onMounted(() => {
     new GLTFLoader().load('../../src/assets/models/Xbot.glb', (gltf) => {
         peopleObj = gltf.scene;
         peopleObj.scale.set(1, 1, 1);
-        // peopleAnimations = gltf.animations;
-
         gltf.scene.traverse((child) => {
             child.castShadow = true;
             child.receiveShadow = true;
@@ -215,7 +209,7 @@ onMounted(() => {
 
     // 控制
     function controls(deltaTime) {
-        capsule.rotation.y = camera.rotation.y;
+        capsule.rotation.y = camera.rotation.y+ currentRotation;
         const speedDelta = deltaTime * (playerOnFloor ? 25 : 8);
         if (keyStates['KeyW']) {
             playerVelocity.add(getForwardVector().multiplyScalar(-speedDelta));
@@ -249,9 +243,14 @@ onMounted(() => {
         }
     }
     // 鼠标移动事件处理函数
+    // 在顶部定义一个变量来保存当前的角度
+    let currentRotation = 0;
+
     const onMouseMove = (e) => {
         if (prePos) {
-            peopleObj.rotateY(-(e.clientX - prePos) * 0.01);
+            const rotationChange = -(e.clientX - prePos) * 0.01;
+            peopleObj.rotateY(rotationChange);
+            currentRotation += rotationChange;
         }
         prePos = e.clientX;
     };
@@ -273,7 +272,6 @@ onMounted(() => {
             stopMoving();
         }
     });
-
 })
 </script>
 
