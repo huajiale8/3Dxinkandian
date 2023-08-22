@@ -15,9 +15,16 @@ camera.rotation.order = 'YXZ';
 const ambientLight = new THREE.AmbientLight(0xffffff, 1); // 参数1：光的颜色，参数2：光的强度
 scene.add(ambientLight);
 
-const fillLight1 = new THREE.HemisphereLight(0xffffff, 1);
-fillLight1.position.set(10, 10, 10);
-scene.add(fillLight1);
+// const light = new THREE.DirectionalLight(0xffffff, 1);
+// light.castShadow = true;
+// light.position.set(2, 6, 0);
+// scene.add(light);
+// 添加平行光
+// const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+// directionalLight.position.set(10, 10, 10);
+// scene.add(directionalLight);
+
+
 onMounted(() => {
     const container = document.getElementById('container');
     const renderer = new THREE.WebGLRenderer({
@@ -27,11 +34,12 @@ onMounted(() => {
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.VSMShadowMap;
-    renderer.outputEncoding = THREE.sRGBEncoding;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     container.appendChild(renderer.domElement);
     const stats = new Stats();
+
+
     container.appendChild(stats.domElement);
     const geometry = new THREE.CapsuleGeometry(0.35, 0.7, 4, 8);
     // 材料
@@ -40,11 +48,10 @@ onMounted(() => {
         wireframe: true,
         transparent: true, // 启用透明度
         alphaTest: 0.5, // 控制透明度的阈值
-        visible:false,
+        visible: false,
     });
     const capsule = new THREE.Mesh(geometry, material);
     scene.add(capsule);
-
     const GRAVITY = 30;
     const STEPS_PER_FRAME = 5;
     let peopleObj;
@@ -62,12 +69,15 @@ onMounted(() => {
         keyStates[event.code] = false;
         crossPlay(actionWalk, actionIdle);
     });
+
     window.addEventListener('resize', onWindowResize);
+
     function onWindowResize() {
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
         renderer.setSize(window.innerWidth, window.innerHeight);
     }
+
     // 玩家碰撞
     function playerCollisions() {
         const result = worldOctree.capsuleIntersect(playerCollider);
@@ -94,11 +104,25 @@ onMounted(() => {
         newAction.fadeIn(duration);
     }
 
+
     const loader = new GLTFLoader().setPath('../../src/assets/models/');
-    loader.load('kongjianzhans.glb', (gltf) => {
+    loader.load('kongjianzhanx.glb?t=' + Math.random(), (gltf) => {
         let obj = gltf.scene;
+        const baseColorTexture = new THREE.TextureLoader().load('../../src/assets/baseMap.jpg?t=' + Math.random());
+        const lightMap = new THREE.TextureLoader().load('../../src/assets/lightMaplight.png?t=' + Math.random());
+        obj.traverse((node) => {
+            if (node.isMesh && node.name === "xiuxiqu_qiang") {
+               const text =  new THREE.MeshStandardMaterial
+                   text.map = baseColorTexture
+            }
+        });
+        gltf.scene.traverse((child) => {
+            child.castShadow = true;
+            child.receiveShadow = true;
+        });
         obj.remove(obj.getObjectByName("polySurface150")!);
         scene.add(obj);
+        console.log(obj)
         worldOctree.fromGraphNode(obj);
         animate();
     });
@@ -106,8 +130,6 @@ onMounted(() => {
     let playerMixer;
     let actionIdle;
     let actionWalk;
-    let actionRun;
-
     new GLTFLoader().load('../../src/assets/models/Xbot.glb', (gltf) => {
         peopleObj = gltf.scene;
         peopleObj.scale.set(1, 1, 1);
@@ -115,10 +137,9 @@ onMounted(() => {
             child.castShadow = true;
             child.receiveShadow = true;
         });
-        camera.position.set(0, 2, -6); //相机位置
+        camera.position.set(0, 2, -3); //相机位置
         camera.lookAt(new THREE.Vector3(0, 2, 3));
         peopleObj.add(camera)
-
         const bbox = new THREE.Box3().setFromObject(peopleObj);
         // 获取包围盒的中心点
         const center = new THREE.Vector3();
@@ -128,16 +149,12 @@ onMounted(() => {
         peopleObj.position.sub(center);
         // 组合对象添加到场景中
         scene.add(peopleObj);
-
-
         playerMixer = new THREE.AnimationMixer(peopleObj);
         const clipIdle = THREE.AnimationUtils.subclip(gltf.animations[0], 'idle', 0, 250);
         actionIdle = playerMixer.clipAction(clipIdle);
         actionIdle.play();
         const clipWalk = THREE.AnimationUtils.subclip(gltf.animations[6], 'walk', 0, 250);
         actionWalk = playerMixer.clipAction(clipWalk);
-        const clipRun = THREE.AnimationUtils.subclip(gltf.animations[3], 'run', 0, 250);
-        actionRun = playerMixer.clipAction(clipRun);
     })
 
     function animate() {
@@ -157,6 +174,7 @@ onMounted(() => {
         window.addEventListener('resize', onWindowResize);
         // 旋转人物模型
     }
+
     let prePos;
     let flag = ref(false)
 // 鼠标按住时触发移动操作
@@ -207,9 +225,10 @@ onMounted(() => {
         return playerDirection;
     }
 
+
     // 控制
     function controls(deltaTime) {
-        capsule.rotation.y = camera.rotation.y+ currentRotation;
+        capsule.rotation.y = camera.rotation.y + currentRotation;
         const speedDelta = deltaTime * (playerOnFloor ? 25 : 8);
         if (keyStates['KeyW']) {
             playerVelocity.add(getForwardVector().multiplyScalar(-speedDelta));
@@ -242,6 +261,7 @@ onMounted(() => {
             }
         }
     }
+
     // 鼠标移动事件处理函数
     // 在顶部定义一个变量来保存当前的角度
     let currentRotation = 0;
@@ -272,6 +292,7 @@ onMounted(() => {
             stopMoving();
         }
     });
+
 })
 </script>
 
