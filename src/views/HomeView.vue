@@ -13,26 +13,32 @@ const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerH
 camera.rotation.order = 'YXZ';
 
 const ambientLight = new THREE.AmbientLight(0xffffff, 1); // 参数1：光的颜色，参数2：光的强度
+ambientLight.castShadow = true
 scene.add(ambientLight);
 
-const light = new THREE.DirectionalLight(0xffffff, 1);
+
+const light = new THREE.PointLight(0xffffff, 10,0);
 light.castShadow = true;
-light.position.set(2, 6, 0);
+// light.decay = 2
+light.position.set(0, 3, 0);
 scene.add(light);
+
+
+const directionalLight = new THREE.DirectionalLight(0xffffff, 0.7);
+directionalLight.position.set(0, 1, 1);
+directionalLight.castShadow = true
+scene.add(directionalLight);
+
 
 onMounted(() => {
     const container = document.getElementById('container');
     const renderer = new THREE.WebGLRenderer({
         antialias: true,
-        alpha:true
+        alpha: true
 
     });
-    renderer.autoClear = true
-    renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.VSMShadowMap;
-    renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     container.appendChild(renderer.domElement);
     const stats = new Stats()
@@ -48,7 +54,6 @@ onMounted(() => {
     });
     const capsule = new THREE.Mesh(geometry, material);
     scene.add(capsule);
-
     const GRAVITY = 30;
     const STEPS_PER_FRAME = 5;
     let peopleObj;
@@ -72,22 +77,21 @@ onMounted(() => {
     }
 
     const loader = new GLTFLoader().setPath('../../src/assets/models/');
-    loader.load('kongjianzhanx.glb?t=' + Math.random(), (gltf) => {
+    loader.load('kongjianzhan825.glb', (gltf) => {
+        console.log(gltf)
         let obj = gltf.scene;
-        // const baseColorTexture = new THREE.TextureLoader().load('../../src/assets/baseMap.jpg?t=' + Math.random());
-        // const lightMap = new THREE.TextureLoader().load('../../src/assets/lightMaplight.png?t=' + Math.random());
-        // obj.traverse((node) => {
-        //     const text =  new THREE.MeshStandardMaterial
-        //     if (node.isMesh && node.name === "xiuxiqu_qiang") {
-        //         text.map = baseColorTexture
-        //         text.lightMap = lightMap
-        //         // text.emissive = new THREE.Color(0xffffff)
-        //         // text.emissiveIntensity = 0.5
-        //         text.lightMapIntensity  = 1
-        //         node.material = text;
-        //         // text.wireframe = true
-        //     }
-        // });
+        const lightMap = new THREE.TextureLoader().load('../../src/assets/lightMaplight.png');
+        lightMap.colorSpace = THREE.SRGBColorSpace
+        const baseColorTexture = new THREE.TextureLoader().load('../../src/assets/baseMap.jpg');
+        baseColorTexture.colorSpace = THREE.SRGBColorSpace
+        obj.traverse((node) => {
+            // const material = new THREE.MeshStandardMaterial
+            if (node.isMesh && node.name === "xiuxiqu_qiang") {
+                node.material.lightMap = lightMap;
+                console.log(node);
+            }
+        });
+
         gltf.scene.traverse((child) => {
             child.castShadow = true; //投射阴影
             child.receiveShadow = true; //接收影子
@@ -164,12 +168,14 @@ onMounted(() => {
             peopleObj.position.copy(resPos.clone().setY(resPos.y - 0.7));
         }
     }
+
     function getForwardVector() {
         capsule.getWorldDirection(playerDirection);
         playerDirection.y = 0;
         playerDirection.normalize();
         return playerDirection;
     }
+
     function getSideVector() {
         capsule.getWorldDirection(playerDirection);
         playerDirection.y = 0;
@@ -177,9 +183,10 @@ onMounted(() => {
         playerDirection.cross(capsule.up);
         return playerDirection;
     }
+
     function controls(deltaTime) {
         capsule.rotation.y = camera.rotation.y + currentRotation;
-        const speedDelta = deltaTime * (playerOnFloor ? 10 : 1);
+        const speedDelta = deltaTime * (playerOnFloor ? 24 : 1);
         if (keyStates['KeyW']) {
             playerVelocity.add(getForwardVector().multiplyScalar(-speedDelta));
             actionWalk.play()

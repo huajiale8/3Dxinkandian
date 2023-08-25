@@ -20,9 +20,9 @@ scene.add(ambientLight);
 // light.position.set(2, 6, 0);
 // scene.add(light);
 // 添加平行光
-// const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-// directionalLight.position.set(10, 10, 10);
-// scene.add(directionalLight);
+const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+directionalLight.position.set(10, 10, 10);
+scene.add(directionalLight);
 
 
 onMounted(() => {
