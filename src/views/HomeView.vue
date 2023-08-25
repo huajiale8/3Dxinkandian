@@ -10,18 +10,43 @@ const clock = new THREE.Clock();
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x88ccee);
 const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 1000);
+const lightOptions = [{
+    position: {x: -12.786, y: 10.352, z: 6.271},
+}
+    , {
+        position: {x: -6.865, y: 9.805, z: 7.107},
+    }, {
+        position: {x: -12.853, y: 0.4, z: 6.271},
+    },
+    {
+        position: {x: 5.561, y: 3.463, z: 6.479},
+    },
+    {
+        position: {x: 8.909, y: -2.356, z: 6.479},
+    },
+    {
+        position: {x: 5.561, y: -8.617, z: 6.479},
+    }
+    ,
+    {
+        position: {x: 13.665, y: -10.533, z: 7.16},
+    }]
+
+
 camera.rotation.order = 'YXZ';
 
 const ambientLight = new THREE.AmbientLight(0xffffff, 1); // 参数1：光的颜色，参数2：光的强度
-ambientLight.castShadow = true
 scene.add(ambientLight);
 
 
-const light = new THREE.PointLight(0xffffff, 10,0);
-light.castShadow = true;
+lightOptions.forEach((item, index) => {
+    const light = new THREE.RectAreaLight(0xffffff, 0.5, 1,1);
+    light.lookAt(item.position.x,0,item.position.y)
+    // light.castShadow = true;
 // light.decay = 2
-light.position.set(0, 3, 0);
-scene.add(light);
+    light.position.set(item.position.x, item.position.z, item.position.y);
+    scene.add(light);
+})
 
 
 const directionalLight = new THREE.DirectionalLight(0xffffff, 0.7);
@@ -76,22 +101,20 @@ onMounted(() => {
         }
     }
 
+    const geometry1 = new THREE.BoxGeometry(); // 创建立方体的几何体
+    const material1 = new THREE.MeshBasicMaterial({color: 0x00ff00}); // 创建材质
+    const cube = new THREE.Mesh(geometry1, material1); // 创建立方体对象
+    cube.position.y = 7
+    scene.add(cube); // 将立方体对象添加到场景中
+
     const loader = new GLTFLoader().setPath('../../src/assets/models/');
     loader.load('kongjianzhan825.glb', (gltf) => {
-        console.log(gltf)
         let obj = gltf.scene;
-        const lightMap = new THREE.TextureLoader().load('../../src/assets/lightMaplight.png');
+        console.log(obj)
+        const lightMap = new THREE.TextureLoader().load('../../src/assets/xiuxiqu_qiangLightingMap.png');
         lightMap.colorSpace = THREE.SRGBColorSpace
         const baseColorTexture = new THREE.TextureLoader().load('../../src/assets/baseMap.jpg');
         baseColorTexture.colorSpace = THREE.SRGBColorSpace
-        obj.traverse((node) => {
-            // const material = new THREE.MeshStandardMaterial
-            if (node.isMesh && node.name === "xiuxiqu_qiang") {
-                node.material.lightMap = lightMap;
-                console.log(node);
-            }
-        });
-
         gltf.scene.traverse((child) => {
             child.castShadow = true; //投射阴影
             child.receiveShadow = true; //接收影子
@@ -152,6 +175,7 @@ onMounted(() => {
         window.removeEventListener('mousemove', onMouseMove);
         prePos = null;
     };
+
     function updatePlayer(deltaTime) {
         let damping = Math.exp(-4 * deltaTime) - 1;
         if (!playerOnFloor) {
@@ -186,7 +210,7 @@ onMounted(() => {
 
     function controls(deltaTime) {
         capsule.rotation.y = camera.rotation.y + currentRotation;
-        const speedDelta = deltaTime * (playerOnFloor ? 24 : 1);
+        const speedDelta = deltaTime * (playerOnFloor ? 18 : 1);
         if (keyStates['KeyW']) {
             playerVelocity.add(getForwardVector().multiplyScalar(-speedDelta));
             actionWalk.play()
@@ -243,6 +267,7 @@ onMounted(() => {
         actionIdle.play()
     });
     window.addEventListener('resize', onWindowResize);
+
     function onWindowResize() {
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
