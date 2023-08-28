@@ -5,71 +5,29 @@ import {Capsule} from "three/examples/jsm/math/Capsule";
 import {GLTFLoader} from "three/examples/jsm/loaders/GLTFLoader";
 import {onMounted, ref} from "vue";
 import Stats from "three/examples/jsm/libs/stats.module";
+import {RectAreaLightHelper} from "three/examples/jsm/helpers/RectAreaLightHelper";
 
 const clock = new THREE.Clock();
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x88ccee);
 const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 1000);
-const lightOptions = [{
-    position: {x: -12.786, y: 10.352, z: 6.271},
-}
-    , {
-        position: {x: -6.865, y: 9.805, z: 7.107},
-    }, {
-        position: {x: -12.853, y: 0.4, z: 6.271},
-    },
-    {
-        position: {x: 5.561, y: 3.463, z: 6.479},
-    },
-    {
-        position: {x: 8.909, y: -2.356, z: 6.479},
-    },
-    {
-        position: {x: 5.561, y: -8.617, z: 6.479},
-    }
-    ,
-    {
-        position: {x: 13.665, y: -10.533, z: 7.16},
-    }]
-
-
 camera.rotation.order = 'YXZ';
-
-const ambientLight = new THREE.AmbientLight(0xffffff, 1); // 参数1：光的颜色，参数2：光的强度
-scene.add(ambientLight);
-
-
-lightOptions.forEach((item, index) => {
-    const light = new THREE.RectAreaLight(0xffffff, 0.5, 1,1);
-    light.lookAt(item.position.x,0,item.position.y)
-    // light.castShadow = true;
-// light.decay = 2
-    light.position.set(item.position.x, item.position.z, item.position.y);
-    scene.add(light);
-})
-
-
-const directionalLight = new THREE.DirectionalLight(0xffffff, 0.7);
-directionalLight.position.set(0, 1, 1);
-directionalLight.castShadow = true
-scene.add(directionalLight);
-
+const renderer = new THREE.WebGLRenderer({
+    antialias: true,
+    alpha: true
+});
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+let prePos;
+let flag = ref(false)
 
 onMounted(() => {
     const container = document.getElementById('container');
-    const renderer = new THREE.WebGLRenderer({
-        antialias: true,
-        alpha: true
-
-    });
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     container.appendChild(renderer.domElement);
     const stats = new Stats()
     container.appendChild(stats.domElement);
     const geometry = new THREE.CapsuleGeometry(0.35, 0.7, 4, 8);
-
     const material = new THREE.MeshBasicMaterial({
         color: 0x00ff00,
         wireframe: true,
@@ -100,12 +58,6 @@ onMounted(() => {
             playerCollider.translate(result.normal.multiplyScalar(result.depth));
         }
     }
-
-    const geometry1 = new THREE.BoxGeometry(); // 创建立方体的几何体
-    const material1 = new THREE.MeshBasicMaterial({color: 0x00ff00}); // 创建材质
-    const cube = new THREE.Mesh(geometry1, material1); // 创建立方体对象
-    cube.position.y = 7
-    scene.add(cube); // 将立方体对象添加到场景中
 
     const loader = new GLTFLoader().setPath('../../src/assets/models/');
     loader.load('kongjianzhan825.glb', (gltf) => {
@@ -166,8 +118,7 @@ onMounted(() => {
         window.addEventListener('resize', onWindowResize);
     }
 
-    let prePos;
-    let flag = ref(false)
+
     const startMoving = () => {
         window.addEventListener('mousemove', onMouseMove);
     };
@@ -268,12 +219,109 @@ onMounted(() => {
     });
     window.addEventListener('resize', onWindowResize);
 
-    function onWindowResize() {
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize(window.innerWidth, window.innerHeight);
-    }
+    light()
+
 })
+const light = () => {
+
+    const lightOptions = [{
+        position: {x: 9, y: 4.352, z: 2},
+    }, {
+        position: {x: 5.5, y: 4.352, z: 8.8},
+    }, {
+        position: {x: 5.5, y: 4.352, z: -3.5},
+    }, {
+        position: {x: -6.9, y: 5.352, z: -9.8},
+    }
+    ]
+
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1); // 参数1：光的颜色，参数2：光的强度
+    scene.add(ambientLight);
+
+    // 星星左上角方块灯
+    const rectLight = new THREE.RectAreaLight(0xffffff, 1, 3, 3.1);
+    rectLight.position.set(13.7, 7.1, 10.5);
+    rectLight.rotation.set(Math.PI * 0.5, 0, 0)
+    scene.add(rectLight)
+    // 沙发左上角方块灯
+    const rectLight2 = new THREE.RectAreaLight(0xffffff, 1, 3, 3.05);
+    rectLight2.position.set(-12.8, 6.25, -10.37);
+    rectLight2.rotation.set(Math.PI * 1.5, 0, 0)
+    scene.add(rectLight2)
+    const rectLightHelper = new RectAreaLightHelper(rectLight2);
+    scene.add(rectLightHelper);
+
+    // wecome上方方块灯
+    const rectLight3 = new THREE.RectAreaLight(0xffffff, 1, 3, 3.05);
+    rectLight3.position.set(-12.9, 6.25, -0.395);
+    rectLight3.rotation.set(Math.PI * 1.5, 0, 0)
+    scene.add(rectLight3)
+    const rectLightHelper3 = new RectAreaLightHelper(rectLight3);
+    scene.add(rectLightHelper3);
+
+    // 一号条形灯
+    const rectLight4 = new THREE.RectAreaLight(0xffffff, 1, 6, 0.4);
+    rectLight4.position.set(7.3, 6.5, 14.2);
+    rectLight4.rotation.set(Math.PI * 1.5, 0, 0)
+    scene.add(rectLight4)
+    const rectLightHelper4 = new RectAreaLightHelper(rectLight4);
+    scene.add(rectLightHelper4);
+
+// 二号条形灯
+    const rectLight5 = new THREE.RectAreaLight(0xffffff, 1, 0.8, 13.3);
+    rectLight5.position.set(14.8, 7.1, 0.25);
+    rectLight5.rotation.set(Math.PI * 1.5, 0, 0)
+    scene.add(rectLight5)
+    const rectLightHelper5 = new RectAreaLightHelper(rectLight5);
+    scene.add(rectLightHelper5);
+
+    // 三号条形灯
+    const rectLight6 = new THREE.RectAreaLight(0xffffff, 1, 5, 0.4);
+    rectLight6.position.set(12.2, 7.1, -9.5);
+    rectLight6.rotation.set(Math.PI * 1.5, 0, 0)
+    scene.add(rectLight6)
+    const rectLightHelper6 = new RectAreaLightHelper(rectLight6);
+    scene.add(rectLightHelper6);
+    // 四号条形灯
+    const rectLight7 = new THREE.RectAreaLight(0xffffff, 1, 0.4, 4.6);
+    rectLight7.position.set(8.1, 7.15, -12.8);
+    rectLight7.rotation.set(Math.PI * 1.5, 0, 0)
+    scene.add(rectLight7)
+    const rectLightHelper7 = new RectAreaLightHelper(rectLight7);
+    scene.add(rectLightHelper7);
+    // 五号条形灯
+    const rectLight8 = new THREE.RectAreaLight(0xffffff, 1, 12.5, 0.6);
+    rectLight8.position.set(0, 7.05, -15);
+    rectLight8.rotation.set(Math.PI * 1.5, 0, 0)
+    scene.add(rectLight8)
+    const rectLightHelper8 = new RectAreaLightHelper(rectLight8);
+    scene.add(rectLightHelper8);
+    // 六号条形灯
+    const rectLight9 = new THREE.RectAreaLight(0xffffff, 3, 0.6, 18.5);
+    rectLight9.position.set(-8.1, 7.1, 4.55);
+    rectLight9.rotation.set(Math.PI * 1.5, 0, 0)
+    scene.add(rectLight9)
+    const rectLightHelper9 = new RectAreaLightHelper(rectLight9);
+    scene.add(rectLightHelper9);
+// const directionalLight = new THREE.DirectionalLight(0xffffff, 0.7);
+// directionalLight.position.set(0, 1, 1);
+// directionalLight.castShadow = true
+// scene.add(directionalLight);
+
+    lightOptions.forEach((item, index) => {
+        const light = new THREE.PointLight(0xffffff, 8, 10, 1);
+        light.position.set(item.position.x, item.position.y, item.position.z);
+        light.castShadow = true
+        scene.add(light);
+    })
+
+}
+
+function onWindowResize() {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+}
 </script>
 <template>
     <div id="container"></div>
