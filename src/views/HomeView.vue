@@ -62,7 +62,7 @@ onMounted(() => {
     }
 
     const loader = new GLTFLoader().setPath('../../src/assets/models/');
-    loader.load('kongjianzhan825.glb', (gltf) => {
+    loader.load('kongjianzhan.glb', (gltf) => {
         let obj = gltf.scene;
         console.log(obj)
         const lightMap = new THREE.TextureLoader().load('../../src/assets/xiuxiqu_qiangLightingMap.png');
