@@ -22,6 +22,8 @@ renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 let prePos;
 let flag = ref(false)
 
+
+
 onMounted(() => {
     const container = document.getElementById('container');
     container.appendChild(renderer.domElement);
