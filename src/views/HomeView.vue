@@ -60,24 +60,24 @@ onMounted(() => {
     }
 
     const loader = new GLTFLoader().setPath('../../src/assets/models/');
-    loader.load('kongjianzhan.glb', (gltf) => {
+    loader.load('kongjianzhan8.31.1329.glb', (gltf) => {
         let obj = gltf.scene;
-        // console.log(obj)
-        // const lightMap = new THREE.TextureLoader().load('../../src/assets/xiuxiqu_qiangLightingMap.png');
+        const lightMap = new THREE.TextureLoader().load('../../src/assets/xiuxiqu_qiangLightingMap.png');
         // lightMap.colorSpace = THREE.SRGBColorSpace
         // baseColorTexture.colorSpace = THREE.SRGBColorSpace
 
         const baseColorTexture = new THREE.TextureLoader().load('../../src/assets/baseMap.jpg');
         baseColorTexture.encoding = THREE.sRGBEncoding;
-        obj.traverse((node) => {
-            if (node.isMesh && node.name === "xiuxiqu_qiang") {
-                const material = new THREE.MeshPhongMaterial({
-                    map: baseColorTexture,
-                    lightMapIntensity: 1,
-                });
-                node.material = material;
-            }
-        });
+        // obj.traverse((node) => {
+        //     if (node.isMesh && node.name === "xiuxiqu_qiang") {
+        //         const material = new THREE.MeshStandardMaterial({
+        //             // map: baseColorTexture,
+        //             // lightMap:lightMap,
+        //             // lightMapIntensity: 1,
+        //         });
+        //         node.material = material;
+        //     }
+        // });
         gltf.scene.traverse((child) => {
             child.castShadow = true; //投射阴影
             child.receiveShadow = true; //接收影子
@@ -130,7 +130,6 @@ onMounted(() => {
         requestAnimationFrame(animate);
         window.addEventListener('resize', onWindowResize);
     }
-
 
     const startMoving = () => {
         window.addEventListener('mousemove', onMouseMove);
@@ -251,7 +250,7 @@ const light = () => {
     const ambientLight = new THREE.AmbientLight(0xffffff, 1); // 参数1：光的颜色，参数2：光的强度
     scene.add(ambientLight);
 
-    // 星星左上角方块灯
+//     // 星星左上角方块灯
     const rectLight = new THREE.RectAreaLight(0xffffff, 1, 3, 3.1);
     rectLight.position.set(13.7, 7.1, 10.5);
     rectLight.rotation.set(Math.PI * 0.5, 0, 0)
@@ -316,18 +315,25 @@ const light = () => {
     scene.add(rectLight9)
     const rectLightHelper9 = new RectAreaLightHelper(rectLight9);
     scene.add(rectLightHelper9);
-// const directionalLight = new THREE.DirectionalLight(0xffffff, 0.7);
-// directionalLight.position.set(0, 1, 1);
-// directionalLight.castShadow = true
-// scene.add(directionalLight);
+
 
     lightOptions.forEach((item, index) => {
-        const light = new THREE.PointLight(0xffffff, 8, 10, 1);
+        const light = new THREE.PointLight(0xffffff, 6, 10, 1);
         light.position.set(item.position.x, item.position.y, item.position.z);
         light.castShadow = true
         scene.add(light);
     })
+// 中心光
+//     const light = new THREE.PointLight(0xffffff, 80, 1000, 1);
+//     light.position.set(0,15,7);
+//     light.castShadow = true
+//     scene.add(light);
 
+    // 平行光
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+    directionalLight.position.set(0,6,-7);
+    // directionalLight.castShadow = true
+    scene.add(directionalLight);
 
 }
 
