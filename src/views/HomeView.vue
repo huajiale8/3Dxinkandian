@@ -22,8 +22,6 @@ renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 let prePos;
 let flag = ref(false)
 
-
-
 onMounted(() => {
     const container = document.getElementById('container');
     container.appendChild(renderer.domElement);
@@ -64,15 +62,28 @@ onMounted(() => {
     const loader = new GLTFLoader().setPath('../../src/assets/models/');
     loader.load('kongjianzhan.glb', (gltf) => {
         let obj = gltf.scene;
-        console.log(obj)
-        const lightMap = new THREE.TextureLoader().load('../../src/assets/xiuxiqu_qiangLightingMap.png');
-        lightMap.colorSpace = THREE.SRGBColorSpace
+        // console.log(obj)
+        // const lightMap = new THREE.TextureLoader().load('../../src/assets/xiuxiqu_qiangLightingMap.png');
+        // lightMap.colorSpace = THREE.SRGBColorSpace
+        // baseColorTexture.colorSpace = THREE.SRGBColorSpace
+
         const baseColorTexture = new THREE.TextureLoader().load('../../src/assets/baseMap.jpg');
-        baseColorTexture.colorSpace = THREE.SRGBColorSpace
+        baseColorTexture.encoding = THREE.sRGBEncoding;
+        obj.traverse((node) => {
+            if (node.isMesh && node.name === "xiuxiqu_qiang") {
+                const material = new THREE.MeshPhongMaterial({
+                    map: baseColorTexture,
+                    lightMapIntensity: 1,
+                });
+                node.material = material;
+            }
+        });
         gltf.scene.traverse((child) => {
             child.castShadow = true; //投射阴影
             child.receiveShadow = true; //接收影子
         });
+        // 基础颜色贴图
+
         obj.remove(obj.getObjectByName("polySurface150")!);
         scene.add(obj);
         worldOctree.fromGraphNode(obj);
@@ -130,7 +141,7 @@ onMounted(() => {
     };
 
     function updatePlayer(deltaTime) {
-        let damping = Math.exp(-4 * deltaTime) - 1;
+        let damping = Math.exp(-10 * deltaTime) - 1;
         if (!playerOnFloor) {
             playerVelocity.y -= GRAVITY * deltaTime;
             damping *= 0.1;
@@ -316,6 +327,7 @@ const light = () => {
         light.castShadow = true
         scene.add(light);
     })
+
 
 }
 
