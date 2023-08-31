@@ -6,6 +6,7 @@ import {GLTFLoader} from "three/examples/jsm/loaders/GLTFLoader";
 import {onMounted, ref} from "vue";
 import Stats from "three/examples/jsm/libs/stats.module";
 import {RectAreaLightHelper} from "three/examples/jsm/helpers/RectAreaLightHelper";
+import {RoomEnvironment} from "three/examples/jsm/environments/RoomEnvironment";
 
 const clock = new THREE.Clock();
 const scene = new THREE.Scene();
@@ -60,7 +61,7 @@ onMounted(() => {
     }
 
     const loader = new GLTFLoader().setPath('../../src/assets/models/');
-    loader.load('kongjianzhan8.31.1329.glb', (gltf) => {
+    loader.load('kongjianzhan8.31.1352.glb', (gltf) => {
         let obj = gltf.scene;
         const lightMap = new THREE.TextureLoader().load('../../src/assets/xiuxiqu_qiangLightingMap.png');
         // lightMap.colorSpace = THREE.SRGBColorSpace
@@ -89,6 +90,9 @@ onMounted(() => {
         worldOctree.fromGraphNode(obj);
         animate();
     });
+    //
+    // const pmremGenerator = new THREE.PMREMGenerator(renderer);
+    // scene.environment = pmremGenerator.fromScene(new RoomEnvironment(renderer), 0.1).texture;
 
     let playerMixer;
     let actionIdle;
@@ -318,7 +322,7 @@ const light = () => {
 
 
     lightOptions.forEach((item, index) => {
-        const light = new THREE.PointLight(0xffffff, 6, 10, 1);
+        const light = new THREE.PointLight(0xffffff, 8, 10, 1);
         light.position.set(item.position.x, item.position.y, item.position.z);
         light.castShadow = true
         scene.add(light);
