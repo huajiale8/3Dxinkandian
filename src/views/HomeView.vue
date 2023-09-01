@@ -6,7 +6,6 @@ import {GLTFLoader} from "three/examples/jsm/loaders/GLTFLoader";
 import {onMounted, ref} from "vue";
 import Stats from "three/examples/jsm/libs/stats.module";
 import {RectAreaLightHelper} from "three/examples/jsm/helpers/RectAreaLightHelper";
-import {RoomEnvironment} from "three/examples/jsm/environments/RoomEnvironment";
 
 const clock = new THREE.Clock();
 const scene = new THREE.Scene();
@@ -63,37 +62,15 @@ onMounted(() => {
     const loader = new GLTFLoader().setPath('../../src/assets/models/');
     loader.load('kongjianzhan8.31.1352.glb', (gltf) => {
         let obj = gltf.scene;
-        const lightMap = new THREE.TextureLoader().load('../../src/assets/xiuxiqu_qiangLightingMap.png');
-        // lightMap.colorSpace = THREE.SRGBColorSpace
-        // baseColorTexture.colorSpace = THREE.SRGBColorSpace
-
-        const baseColorTexture = new THREE.TextureLoader().load('../../src/assets/baseMap.jpg');
-        baseColorTexture.encoding = THREE.sRGBEncoding;
-        // obj.traverse((node) => {
-        //     if (node.isMesh && node.name === "xiuxiqu_qiang") {
-        //         const material = new THREE.MeshStandardMaterial({
-        //             // map: baseColorTexture,
-        //             // lightMap:lightMap,
-        //             // lightMapIntensity: 1,
-        //         });
-        //         node.material = material;
-        //     }
-        // });
         gltf.scene.traverse((child) => {
             child.castShadow = true; //投射阴影
             child.receiveShadow = true; //接收影子
         });
-        // 基础颜色贴图
-
         obj.remove(obj.getObjectByName("polySurface150")!);
         scene.add(obj);
         worldOctree.fromGraphNode(obj);
         animate();
     });
-    //
-    // const pmremGenerator = new THREE.PMREMGenerator(renderer);
-    // scene.environment = pmremGenerator.fromScene(new RoomEnvironment(renderer), 0.1).texture;
-
     let playerMixer;
     let actionIdle;
     let actionWalk;
@@ -327,15 +304,10 @@ const light = () => {
         light.castShadow = true
         scene.add(light);
     })
-// 中心光
-//     const light = new THREE.PointLight(0xffffff, 80, 1000, 1);
-//     light.position.set(0,15,7);
-//     light.castShadow = true
-//     scene.add(light);
 
     // 平行光
     const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-    directionalLight.position.set(0,6,-7);
+    directionalLight.position.set(0, 6, -7);
     // directionalLight.castShadow = true
     scene.add(directionalLight);
 
