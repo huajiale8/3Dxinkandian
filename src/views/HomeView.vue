@@ -60,17 +60,26 @@ onMounted(() => {
     }
 
     const loader = new GLTFLoader().setPath('../../src/assets/models/');
-    loader.load('kongjianzhan8.31.1352.glb', (gltf) => {
+    loader.load('kongjianzhan9.1.1314.glb', (gltf) => {
         let obj = gltf.scene;
         gltf.scene.traverse((child) => {
             child.castShadow = true; //投射阴影
             child.receiveShadow = true; //接收影子
+        });
+        obj.traverse((child: any) => {
+            if (child.name === 'yanjing') {
+                const newMaterial = child.material.clone()
+                newMaterial.transparent = true
+                newMaterial.opacity = 0.5
+                child.material = newMaterial
+            }
         });
         obj.remove(obj.getObjectByName("polySurface150")!);
         scene.add(obj);
         worldOctree.fromGraphNode(obj);
         animate();
     });
+
     let playerMixer;
     let actionIdle;
     let actionWalk;
@@ -211,7 +220,6 @@ onMounted(() => {
         actionIdle.play()
     });
     window.addEventListener('resize', onWindowResize);
-
     light()
 
 })
@@ -219,13 +227,17 @@ const light = () => {
 
     const lightOptions = [{
         position: {x: 9, y: 4.352, z: 2},
+        castShadow: true
     }, {
         position: {x: 5.5, y: 4.352, z: 8.8},
+        castShadow: true
     }, {
         position: {x: 5.5, y: 4.352, z: -3.5},
+        castShadow: true
     }, {
         position: {x: -6.9, y: 5.352, z: -9.8},
-    }
+        castShadow: true
+    },
     ]
 
     const ambientLight = new THREE.AmbientLight(0xffffff, 1); // 参数1：光的颜色，参数2：光的强度
@@ -301,7 +313,7 @@ const light = () => {
     lightOptions.forEach((item, index) => {
         const light = new THREE.PointLight(0xffffff, 8, 10, 1);
         light.position.set(item.position.x, item.position.y, item.position.z);
-        light.castShadow = true
+        light.castShadow = item.castShadow
         scene.add(light);
     })
 
