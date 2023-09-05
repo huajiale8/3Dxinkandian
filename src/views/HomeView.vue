@@ -222,6 +222,23 @@ onMounted(() => {
     window.addEventListener('resize', onWindowResize);
     light()
 
+    window.addEventListener('dblclick', () => {
+        const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement
+        if (!fullscreenElement) {
+            if (container.requestFullscreen) {
+                container.requestFullscreen()
+            } else if (container.webkitRequestFullscreen) {
+                container.webkitRequestFullscreen()
+            }
+        } else {
+            if (!document.exitFullscreen) {
+                document.exitFullscreen()
+            } else if (document.webkitExitFullscreen) {
+                document.webkitExitFullscreen()
+            }
+        }
+    })
+
 })
 const light = () => {
 
@@ -322,8 +339,8 @@ const light = () => {
     directionalLight.position.set(0, 6, -7);
     // directionalLight.castShadow = true
     scene.add(directionalLight);
-
 }
+
 
 function onWindowResize() {
     camera.aspect = window.innerWidth / window.innerHeight;
