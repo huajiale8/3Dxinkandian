@@ -13,6 +13,9 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
+    "@types/lodash": "^4.14.198",
+    "lil-ui": "0.22.0-a",
+    "lodash": "^4.17.21",
     "pinia": "^2.1.4",
     "three": "^0.155.0",
     "vue": "^3.3.4",

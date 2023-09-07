@@ -5,7 +5,12 @@ import {Capsule} from "three/examples/jsm/math/Capsule";
 import {GLTFLoader} from "three/examples/jsm/loaders/GLTFLoader";
 import {onMounted, ref} from "vue";
 import Stats from "three/examples/jsm/libs/stats.module";
+import * as dat from 'lil-gui'
+import _ from 'lodash'
 import {RectAreaLightHelper} from "three/examples/jsm/helpers/RectAreaLightHelper";
+
+// const gui = new dat.GUI()
+let keyV = false
 
 const clock = new THREE.Clock();
 const scene = new THREE.Scene();
@@ -21,7 +26,6 @@ renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 let prePos;
 let flag = ref(false)
-
 onMounted(() => {
     const container = document.getElementById('container');
     container.appendChild(renderer.domElement);
@@ -60,13 +64,16 @@ onMounted(() => {
     }
 
     const loader = new GLTFLoader().setPath('../../src/assets/models/');
-    loader.load('kongjianzhan9.1.1314.glb', (gltf) => {
+    loader.load('kongjianzhan9.7.1517.glb', (gltf) => {
         let obj = gltf.scene;
         gltf.scene.traverse((child) => {
             child.castShadow = true; //投射阴影
             child.receiveShadow = true; //接收影子
         });
         obj.traverse((child: any) => {
+            if (child.name === 'kaola') {
+                console.log(child)
+            }
             if (child.name === 'yanjing') {
                 const newMaterial = child.material.clone()
                 newMaterial.transparent = true
@@ -79,7 +86,6 @@ onMounted(() => {
         worldOctree.fromGraphNode(obj);
         animate();
     });
-
     let playerMixer;
     let actionIdle;
     let actionWalk;
@@ -161,6 +167,7 @@ onMounted(() => {
         return playerDirection;
     }
 
+
     function controls(deltaTime) {
         capsule.rotation.y = camera.rotation.y + currentRotation;
         const speedDelta = deltaTime * (playerOnFloor ? 18 : 1);
@@ -180,6 +187,15 @@ onMounted(() => {
             playerVelocity.add(getSideVector().multiplyScalar(-speedDelta));
             actionWalk.play()
         }
+        // if (keyStates['KeyV']) {
+        //     // _.throttle(() => {
+        //     //     if (keyV) {
+        //     //         camera.position.set(peopleObj.position.x, peopleObj.position.y, 0)
+        //     //     }
+        //     //     keyV = !keyV
+        //     //     console.log(keyV)
+        //     // }, 1000)()
+        // }
         if (playerOnFloor) {
             if (keyStates['Space']) {
                 actionWalk.play()
@@ -187,6 +203,7 @@ onMounted(() => {
             }
         }
     }
+
 
     let currentRotation = 0;
     const onMouseMove = (e) => {
@@ -238,7 +255,6 @@ onMounted(() => {
             }
         }
     })
-
 })
 const light = () => {
 
@@ -255,12 +271,13 @@ const light = () => {
         position: {x: -6.9, y: 5.352, z: -9.8},
         castShadow: true
     },
+
     ]
 
     const ambientLight = new THREE.AmbientLight(0xffffff, 1); // 参数1：光的颜色，参数2：光的强度
     scene.add(ambientLight);
 
-//     // 星星左上角方块灯
+    // 星星左上角方块灯
     const rectLight = new THREE.RectAreaLight(0xffffff, 1, 3, 3.1);
     rectLight.position.set(13.7, 7.1, 10.5);
     rectLight.rotation.set(Math.PI * 0.5, 0, 0)
@@ -328,17 +345,52 @@ const light = () => {
 
 
     lightOptions.forEach((item, index) => {
-        const light = new THREE.PointLight(0xffffff, 8, 10, 1);
+        const light = new THREE.PointLight(0xffffff, 8, 7, 1);
         light.position.set(item.position.x, item.position.y, item.position.z);
         light.castShadow = item.castShadow
         scene.add(light);
     })
-
     // 平行光
     const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
     directionalLight.position.set(0, 6, -7);
-    // directionalLight.castShadow = true
     scene.add(directionalLight);
+
+    // 白色聚光灯从侧面照射，经过纹理调节，形成阴影
+
+    const spotLight = new THREE.SpotLight(0xffffff, 8);
+    spotLight.position.set(0.9, 2.87, -9.97);
+    spotLight.rotation.y = Math.PI * 0.25
+    spotLight.castShadow = false;
+    spotLight.intensity = 42
+    spotLight.distance = 7
+    spotLight.angle = 0.51
+    spotLight.penumbra = 0.9
+    spotLight.target.position.set(3.61, 1.64, -11.84)
+    scene.add(spotLight.target)
+    scene.add(spotLight);
+
+    // const lightHelper = new THREE.SpotLightHelper(spotLight)
+    // scene.add(lightHelper)
+    //
+    //
+    // gui.add(spotLight.position, 'x').min(-10).max(10).step(0.01).name('position x')
+    // gui.add(spotLight.position, 'y').min(-10).max(10).step(0.01).name('position y')
+    // gui.add(spotLight.position, 'z').min(-15).max(10).step(0.01).name('position z')
+    //
+    // gui.add(spotLight.target.position, 'x').min(-10).max(10).step(0.01).name('target x')
+    // gui.add(spotLight.target.position, 'y').min(-10).max(10).step(0.01).name('target y')
+    // gui.add(spotLight.target.position, 'z').min(-15).max(10).step(0.01).name('target z')
+    //
+    // gui.add(spotLight.rotation, 'x').min(-10).max(10).step(0.01).name('rotation x')
+    // gui.add(spotLight.rotation, 'y').min(-10).max(10).step(0.01).name('rotation y')
+    // gui.add(spotLight.rotation, 'z').min(-15).max(10).step(0.01).name('rotation z')
+    //
+    // gui.add(spotLight, 'intensity').min(0).max(100).step(0.01).name('intensity')
+    // gui.add(spotLight, 'distance').min(0).max(10).step(0.01).name('distance')
+    // gui.add(spotLight, 'angle').min(0).max(Math.PI / 2).step(0.01).name('angle')
+    // gui.add(spotLight, 'penumbra').min(0).max(10).step(0.01).name('penumbra')
+    // gui.add(spotLight, 'decay').min(0).max(10).step(0.01).name('decay')
+
 }
 
 
